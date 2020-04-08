@@ -1,7 +1,7 @@
 import React from 'react'
 import axios from 'axios'
 
-export default function useCreatePost() {
+export default function useSavePost() {
   const [status, setStatus] = React.useState('idle')
 
   const savePost = React.useCallback(async (values) => {

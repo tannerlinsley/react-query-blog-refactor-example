@@ -21,6 +21,10 @@ export default function PostForm({
     onSubmit(values)
   }
 
+  React.useEffect(() => {
+    setValues(initialValues)
+  }, [initialValues])
+
   return (
     <form onSubmit={handleSubmit}>
       <label htmlFor="title">Title</label>

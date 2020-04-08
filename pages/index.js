@@ -3,8 +3,8 @@ import React from 'react'
 import { Wrapper, Sidebar, Main } from '../components/styled'
 import PostForm from '../components/PostForm'
 
-import usePosts, { PostsContext } from '../hooks/usePosts'
-import usePost, { PostContext } from '../hooks/usePost'
+import usePosts from '../hooks/usePosts'
+import usePost from '../hooks/usePost'
 import useCreatePost from '../hooks/useCreatePost'
 import useSavePost from '../hooks/useSavePost'
 import useDeletePost from '../hooks/useDeletePost'
@@ -13,34 +13,27 @@ function App() {
   const [activePostId, setActivePostId] = React.useState()
 
   return (
-    <PostsContext>
-      <PostContext>
-        <Wrapper>
-          <Sidebar>
-            <a href="#" onClick={() => setActivePostId()}>
-              All Posts
-            </a>
-            <hr />
-            <Stats setActivePostId={setActivePostId} />
-          </Sidebar>
-          <Main>
-            {activePostId ? (
-              <Post
-                activePostId={activePostId}
-                setActivePostId={setActivePostId}
-              />
-            ) : (
-              <Posts setActivePostId={setActivePostId} />
-            )}
-          </Main>
-        </Wrapper>
-      </PostContext>
-    </PostsContext>
+    <Wrapper>
+      <Sidebar>
+        <a href="#" onClick={() => setActivePostId()}>
+          All Posts
+        </a>
+        <hr />
+        <Stats setActivePostId={setActivePostId} />
+      </Sidebar>
+      <Main>
+        {activePostId ? (
+          <Post activePostId={activePostId} setActivePostId={setActivePostId} />
+        ) : (
+          <Posts setActivePostId={setActivePostId} />
+        )}
+      </Main>
+    </Wrapper>
   )
 }
 
 function Posts({ setActivePostId }) {
-  const { status, posts, error, refetch } = usePosts()
+  const { status, data: posts, error, refetch, isFetching } = usePosts()
   const [createPost, createPostStatus] = useCreatePost()
 
   const onSubmit = async (values) => {
@@ -55,22 +48,24 @@ function Posts({ setActivePostId }) {
   return (
     <section>
       <div>
-        <h3>Posts</h3>
         <div>
           {status === 'loading' ? (
             <span>Loading...</span>
           ) : status === 'error' ? (
             <span>Error: {error.message}</span>
           ) : (
-            <div>
-              {posts.map((post) => (
-                <div key={post.id}>
-                  <a href="#" onClick={() => setActivePostId(post.id)}>
-                    {post.title}
-                  </a>
-                </div>
-              ))}
-            </div>
+            <>
+              <h3>Posts {isFetching ? <small>Updating...</small> : null}</h3>
+              <div>
+                {posts.map((post) => (
+                  <div key={post.id}>
+                    <a href="#" onClick={() => setActivePostId(post.id)}>
+                      {post.title}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -97,7 +92,9 @@ function Posts({ setActivePostId }) {
 }
 
 function Post({ activePostId, setActivePostId }) {
-  const { status, post, error, refetch } = usePost(activePostId)
+  const { status, data: post, error, refetch, isFetching } = usePost(
+    activePostId
+  )
   const [savePost, savePostStatus] = useSavePost()
   const [deletePost, deletePostStatus] = useDeletePost()
 
@@ -129,7 +126,9 @@ function Post({ activePostId, setActivePostId }) {
         <span>Error: {error.message}</span>
       ) : (
         <div>
-          <h3>{post.title}</h3>
+          <h3>
+            {post.title} {isFetching ? <small>Updating...</small> : null}
+          </h3>
           <small>{post.id}</small>
           <div>
             <p>Post ID: {post.content}</p>
@@ -163,13 +162,21 @@ function Post({ activePostId, setActivePostId }) {
 }
 
 function Stats({ setActivePostId }) {
-  const { posts, status: postsStatus } = usePosts()
+  const { data: posts, status: postsStatus, error: postsError } = usePosts()
+
   const [postId, setPostId] = React.useState()
-  const { post, status: postStatus, error: postError } = usePost(postId)
+  const { data: post, status: postStatus, error: postError } = usePost(postId)
 
   return (
     <div>
-      <div>Total Posts: {postsStatus === 'loading' ? '...' : posts.length}</div>
+      <div>
+        Total Posts:{' '}
+        {postsStatus === 'loading'
+          ? '...'
+          : postsStatus === 'error'
+          ? postsError.message
+          : posts.length}
+      </div>
       <hr />
       <div>
         <div>
