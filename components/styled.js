@@ -6,7 +6,7 @@ export const Wrapper = styled.div`
 `
 
 export const Sidebar = styled.div`
-  width: 150px;
+  width: 175px;
   border-right: 1px solid black;
   padding: 1rem;
 `

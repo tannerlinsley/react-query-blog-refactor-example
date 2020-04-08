@@ -1,7 +1,9 @@
 import React from 'react'
 import axios from 'axios'
 
-export default function usePosts() {
+const context = React.createContext()
+
+export function PostsContext({ children }) {
   const [posts, setPosts] = React.useState([])
   const [error, setError] = React.useState()
   const [status, setStatus] = React.useState('loading')
@@ -18,6 +20,19 @@ export default function usePosts() {
       setStatus('error')
     }
   }
+
+  const contextValue = React.useMemo(() => ({
+    posts,
+    status,
+    error,
+    refetch,
+  }))
+
+  return <context.Provider value={contextValue}>{children}</context.Provider>
+}
+
+export default function usePosts() {
+  const { posts, status, error, refetch } = React.useContext(context)
 
   React.useEffect(() => {
     refetch()
