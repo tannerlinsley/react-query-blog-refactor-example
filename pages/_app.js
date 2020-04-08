@@ -20,6 +20,10 @@ const GlobalStyles = createGlobalStyle`
   * {
     box-sizing: border-box;
   }
+
+  input {
+    max-width: 100%;
+  }
 `
 
 export default class MyApp extends App {

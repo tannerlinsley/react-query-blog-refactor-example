@@ -6,7 +6,11 @@ export default function usePost(postId) {
   const [error, setError] = React.useState()
   const [status, setStatus] = React.useState('loading')
 
-  const refetch = async () => {
+  const refetch = React.useCallback(async () => {
+    if (!postId) {
+      return
+    }
+
     try {
       setStatus('loading')
 
@@ -21,11 +25,11 @@ export default function usePost(postId) {
       setError(err)
       setStatus('error')
     }
-  }
+  }, [postId])
 
   React.useEffect(() => {
     refetch()
-  }, [])
+  }, [refetch])
 
   return {
     post,

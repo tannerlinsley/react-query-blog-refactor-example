@@ -20,7 +20,7 @@ function App() {
             All Posts
           </a>
           <hr />
-          <Stats />
+          <Stats setActivePostId={setActivePostId} />
         </Sidebar>
         <Main>
           {activePostId ? (
@@ -128,8 +128,9 @@ function Post({ activePostId, setActivePostId }) {
       ) : (
         <div>
           <h3>{post.title}</h3>
+          <small>{post.id}</small>
           <div>
-            <p>{post.content}</p>
+            <p>Post ID: {post.content}</p>
           </div>
 
           <hr />
@@ -159,9 +160,41 @@ function Post({ activePostId, setActivePostId }) {
   )
 }
 
-function Stats() {
-  const { posts, status } = usePosts()
-  return <div>Total Posts: {status === 'loading' ? '...' : posts.length}</div>
+function Stats({ setActivePostId }) {
+  const { posts, status: postsStatus } = usePosts()
+  const [postId, setPostId] = React.useState()
+  const { post, status: postStatus, error: postError } = usePost(postId)
+
+  return (
+    <div>
+      <div>Total Posts: {postsStatus === 'loading' ? '...' : posts.length}</div>
+      <hr />
+      <div>
+        <div>
+          Search Post ID:{' '}
+          <input value={postId} onChange={(e) => setPostId(e.target.value)} />
+        </div>
+        <br />
+        {postId ? (
+          <div>
+            {postStatus === 'loading' ? (
+              <span>Loading...</span>
+            ) : postStatus === 'error' ? (
+              <span>Error: {postError.message}</span>
+            ) : (
+              <div>
+                <small>Found:</small>
+                <br />
+                <a href="#" onClick={() => setActivePostId(post.id)}>
+                  {post.title}
+                </a>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 export default App
