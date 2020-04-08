@@ -3,6 +3,11 @@ import axios from 'axios'
 
 import { Wrapper, Sidebar, Main } from '../components/styled'
 
+import usePosts from '../hooks/usePosts'
+import usePost from '../hooks/usePost'
+import useCreatePost from '../hooks/useCreatePost'
+import useSavePost from '../hooks/useSavePost'
+
 function App() {
   const [activePostId, setActivePostId] = React.useState()
 
@@ -13,7 +18,7 @@ function App() {
           All Posts
         </a>
         <hr />
-        {/* <Stats /> */}
+        <Stats />
       </Sidebar>
       <Main>
         {activePostId ? (
@@ -27,39 +32,14 @@ function App() {
 }
 
 function Posts({ setActivePostId }) {
-  const [posts, setPosts] = React.useState([])
-  const [error, setError] = React.useState()
-  const [status, setStatus] = React.useState('loading')
-
-  const fetchPosts = async () => {
-    try {
-      setStatus('loading')
-      const posts = await axios.get('/api/posts').then((res) => res.data)
-      setPosts(posts)
-      setError()
-      setStatus('success')
-    } catch (err) {
-      setError(err)
-      setStatus('error')
-    }
-  }
-
-  React.useEffect(() => {
-    fetchPosts()
-  }, [])
-
-  const [initialValues, setInitialValues] = React.useState({})
-  const [mutationStatus, setMutationStatus] = React.useState('idle')
+  const { status, posts, error, refetch } = usePosts()
+  const [createPost, createPostStatus] = useCreatePost()
 
   const onSubmit = async (values) => {
     try {
-      setMutationStatus('loading')
-      await axios.post('/api/posts', values)
-      setInitialValues({})
-      setMutationStatus('success')
-      fetchPosts()
+      await createPost(values)
+      refetch()
     } catch (err) {
-      setMutationStatus('error')
       console.error(err)
     }
   }
@@ -92,11 +72,11 @@ function Posts({ setActivePostId }) {
         <div>
           <PostForm onSubmit={onSubmit} />
           <div>
-            {mutationStatus === 'loading'
+            {createPostStatus === 'loading'
               ? 'Saving...'
-              : mutationStatus === 'error'
+              : createPostStatus === 'error'
               ? 'Error!'
-              : mutationStatus === 'success'
+              : createPostStatus === 'success'
               ? 'Saved!'
               : null}
           </div>
@@ -106,42 +86,15 @@ function Posts({ setActivePostId }) {
   )
 }
 
-function Post({ activePostId, setActivePostId }) {
-  const [post, setPost] = React.useState()
-  const [error, setError] = React.useState()
-  const [status, setStatus] = React.useState('loading')
-
-  const fetchPost = async () => {
-    try {
-      setStatus('loading')
-
-      const post = await axios
-        .get(`/api/posts/${activePostId}`)
-        .then((res) => res.data)
-
-      setPost(post)
-      setError()
-      setStatus('success')
-    } catch (err) {
-      setError(err)
-      setStatus('error')
-    }
-  }
-
-  React.useEffect(() => {
-    fetchPost()
-  }, [])
-
-  const [mutationStatus, setMutationStatus] = React.useState('idle')
+function Post({ activePostId }) {
+  const { status, post, error, refetch } = usePost(activePostId)
+  const [savePost, savePostStatus] = useSavePost()
 
   const onSubmit = async (values) => {
     try {
-      setMutationStatus('loading')
-      await axios.patch(`/api/posts/${values.id}`, values)
-      setMutationStatus('success')
-      fetchPost()
+      await savePost(values)
+      refetch()
     } catch (err) {
-      setMutationStatus('error')
       console.error(err)
     }
   }
@@ -163,11 +116,11 @@ function Post({ activePostId, setActivePostId }) {
 
           <PostForm initialValues={post} onSubmit={onSubmit} />
           <div>
-            {mutationStatus === 'loading'
+            {savePostStatus === 'loading'
               ? 'Saving...'
-              : mutationStatus === 'error'
+              : savePostStatus === 'error'
               ? 'Error!'
-              : mutationStatus === 'success'
+              : savePostStatus === 'success'
               ? 'Saved!'
               : null}
           </div>
@@ -224,7 +177,8 @@ function PostForm({ onSubmit, initialValues = defaultFormValues }) {
 }
 
 function Stats() {
-  return <div>Total Posts: ???</div>
+  const { posts, status } = usePosts()
+  return <div>Total Posts: {status === 'loading' ? '...' : posts.length}</div>
 }
 
 export default App
