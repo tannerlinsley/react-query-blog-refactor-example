@@ -3,6 +3,7 @@ import db from '../../../db'
 import { sleep } from '../../../utils'
 
 //
+const failureRate = 0.5
 
 export default async (req, res) => {
   await sleep(1000)
@@ -45,14 +46,15 @@ async function GET(req, res) {
 }
 
 async function POST(req, res) {
-  const {
-    body: { title, content },
-  } = req
+  if (Math.random() > failureRate) {
+    res.status(500)
+    res.json({ message: 'An unknown error occurred!' })
+    return
+  }
 
   const row = {
     id: shortid.generate(),
-    title,
-    content,
+    ...req.body,
   }
 
   db.posts.push(row)

@@ -1,6 +1,8 @@
 import db from '../../../db'
 import { sleep } from '../../../utils'
 
+const failureRate = 0.5
+
 export default async (req, res) => {
   await sleep(1000)
 
@@ -40,6 +42,12 @@ async function PATCH(req, res) {
     body,
   } = req
 
+  if (Math.random() > failureRate) {
+    res.status(500)
+    res.json({ message: 'An unknown error occurred!' })
+    return
+  }
+
   const row = db.posts.find((d) => d.id === postId)
 
   if (!row) {
@@ -63,6 +71,12 @@ async function DELETE(req, res) {
   const {
     query: { postId },
   } = req
+
+  if (Math.random() > failureRate) {
+    res.status(500)
+    res.json({ message: 'An unknown error occurred!' })
+    return
+  }
 
   const row = db.posts.find((d) => d.id === postId)
 

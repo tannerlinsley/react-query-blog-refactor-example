@@ -88,14 +88,8 @@ function Post({ activePostId, setActivePostId }) {
   const [deletePost, { status: deletePostStatus }] = useDeletePost()
 
   const onDelete = async () => {
-    if (post.id) {
-      try {
-        await deletePost(post.id)
-        setActivePostId()
-      } catch (err) {
-        console.error(err)
-      }
-    }
+    deletePost(post.id)
+    setActivePostId()
   }
 
   return (
@@ -107,7 +101,7 @@ function Post({ activePostId, setActivePostId }) {
       ) : (
         <div>
           <h3>
-            {post.title} {isFetching ? <small>Updating...</small> : null}
+            {post.title} {isFetching ? <small> Updating...</small> : null}
           </h3>
           <small>{post.id}</small>
           <div>
