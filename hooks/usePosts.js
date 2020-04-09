@@ -8,17 +8,27 @@ export function PostsContext({ children }) {
   const [error, setError] = React.useState()
   const [status, setStatus] = React.useState('loading')
 
-  const refetch = async () => {
-    try {
-      setStatus('loading')
-      const posts = await axios.get('/api/posts').then((res) => res.data)
-      setPosts(posts)
-      setError()
-      setStatus('success')
-    } catch (err) {
-      setError(err)
-      setStatus('error')
+  const activePromiseRef = React.useRef(false)
+
+  const refetch = () => {
+    if (!activePromiseRef.current) {
+      activePromiseRef.current = (async () => {
+        try {
+          setStatus('loading')
+          const posts = await axios.get('/api/posts').then((res) => res.data)
+          setPosts(posts)
+          setError()
+          setStatus('success')
+        } catch (err) {
+          setError(err)
+          setStatus('error')
+        } finally {
+          activePromiseRef.current = false
+        }
+      })()
     }
+
+    return activePromiseRef.current
   }
 
   const contextValue = React.useMemo(() => ({
