@@ -1,11 +1,12 @@
 import React from 'react'
+import { queryCache } from 'react-query'
 
 import { Wrapper, Sidebar, Main } from '../components/styled'
 import PostForm from '../components/PostForm'
 
 import usePosts from '../hooks/usePosts'
 import useInfinitePosts from '../hooks/useInfinitePosts'
-import usePost from '../hooks/usePost'
+import usePost, { fetchPost } from '../hooks/usePost'
 import useCreatePost from '../hooks/useCreatePost'
 import useSavePost from '../hooks/useSavePost'
 import useDeletePost from '../hooks/useDeletePost'
@@ -67,7 +68,21 @@ function Posts({ setActivePostId }) {
                   <React.Fragment key={index}>
                     {page.items.map((post) => (
                       <div key={post.id}>
-                        <a href="#" onClick={() => setActivePostId(post.id)}>
+                        <a
+                          href="#"
+                          onClick={() => setActivePostId(post.id)}
+                          onMouseEnter={() => {
+                            if (!queryCache.getQuery(['post', post.id])) {
+                              queryCache.prefetchQuery(
+                                ['post', post.id],
+                                fetchPost,
+                                {
+                                  staleTime: 1000 * 60,
+                                }
+                              )
+                            }
+                          }}
+                        >
                           {post.title}
                         </a>
                       </div>
