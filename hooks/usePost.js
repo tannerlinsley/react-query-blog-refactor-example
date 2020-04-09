@@ -1,31 +1,79 @@
 import React from 'react'
 import axios from 'axios'
 
+const context = React.createContext()
+
+export function PostContext({ children }) {
+  const [posts, setPosts] = React.useState({})
+  const activePromisesRef = React.useRef({})
+
+  const setPost = React.useCallback(
+    (id, updater) =>
+      setPosts((old) => ({
+        ...old,
+        [id]: typeof updater === 'function' ? updater(old[id] || {}) : updater,
+      })),
+    [setPosts]
+  )
+
+  const refetch = React.useCallback(
+    async (postId) => {
+      if (!postId) {
+        return
+      }
+
+      if (!activePromisesRef.current[postId]) {
+        activePromisesRef.current[postId] = (async () => {
+          try {
+            setPost(postId, (old) => ({
+              ...old,
+              status: 'loading',
+            }))
+
+            const post = await axios
+              .get(`/api/posts/${postId}`)
+              .then((res) => res.data)
+
+            setPost(postId, (old) => ({
+              ...old,
+              status: 'success',
+              error: undefined,
+              data: post,
+            }))
+          } catch (err) {
+            setPost(postId, (old) => ({
+              ...old,
+              status: 'error',
+              error: err,
+            }))
+          } finally {
+            activePromisesRef.current[postId] = false
+          }
+        })()
+      }
+
+      return activePromisesRef.current[postId]
+    },
+    [setPost]
+  )
+
+  const contextValue = React.useMemo(() => ({
+    posts,
+    refetch,
+  }))
+
+  return <context.Provider value={contextValue}>{children}</context.Provider>
+}
+
 export default function usePost(postId) {
-  const [post, setPost] = React.useState()
-  const [error, setError] = React.useState()
-  const [status, setStatus] = React.useState('loading')
+  const { posts, refetch: refetchById } = React.useContext(context)
 
-  const refetch = React.useCallback(async () => {
-    if (!postId) {
-      return
-    }
+  const { data: post, status, error } = posts[postId] || { status: 'loading' }
 
-    try {
-      setStatus('loading')
-
-      const post = await axios
-        .get(`/api/posts/${postId}`)
-        .then((res) => res.data)
-
-      setPost(post)
-      setError()
-      setStatus('success')
-    } catch (err) {
-      setError(err)
-      setStatus('error')
-    }
-  }, [postId])
+  const refetch = React.useCallback(async () => refetchById(postId), [
+    refetchById,
+    postId,
+  ])
 
   React.useEffect(() => {
     refetch()

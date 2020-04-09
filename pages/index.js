@@ -4,7 +4,7 @@ import { Wrapper, Sidebar, Main } from '../components/styled'
 import PostForm from '../components/PostForm'
 
 import usePosts, { PostsContext } from '../hooks/usePosts'
-import usePost from '../hooks/usePost'
+import usePost, { PostContext } from '../hooks/usePost'
 import useCreatePost from '../hooks/useCreatePost'
 import useSavePost from '../hooks/useSavePost'
 import useDeletePost from '../hooks/useDeletePost'
@@ -14,25 +14,27 @@ function App() {
 
   return (
     <PostsContext>
-      <Wrapper>
-        <Sidebar>
-          <a href="#" onClick={() => setActivePostId()}>
-            All Posts
-          </a>
-          <hr />
-          <Stats setActivePostId={setActivePostId} />
-        </Sidebar>
-        <Main>
-          {activePostId ? (
-            <Post
-              activePostId={activePostId}
-              setActivePostId={setActivePostId}
-            />
-          ) : (
-            <Posts setActivePostId={setActivePostId} />
-          )}
-        </Main>
-      </Wrapper>
+      <PostContext>
+        <Wrapper>
+          <Sidebar>
+            <a href="#" onClick={() => setActivePostId()}>
+              All Posts
+            </a>
+            <hr />
+            <Stats setActivePostId={setActivePostId} />
+          </Sidebar>
+          <Main>
+            {activePostId ? (
+              <Post
+                activePostId={activePostId}
+                setActivePostId={setActivePostId}
+              />
+            ) : (
+              <Posts setActivePostId={setActivePostId} />
+            )}
+          </Main>
+        </Wrapper>
+      </PostContext>
     </PostsContext>
   )
 }
