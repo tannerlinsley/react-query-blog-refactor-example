@@ -4,7 +4,7 @@ import { Wrapper, Sidebar, Main } from '../components/styled'
 import PostForm from '../components/PostForm'
 
 import usePosts from '../hooks/usePosts'
-import usePaginatedPosts from '../hooks/usePaginatedPosts'
+import useInfinitePosts from '../hooks/useInfinitePosts'
 import usePost from '../hooks/usePost'
 import useCreatePost from '../hooks/useCreatePost'
 import useSavePost from '../hooks/useSavePost'
@@ -34,17 +34,15 @@ function App() {
 }
 
 function Posts({ setActivePostId }) {
-  const [page, setPage] = React.useState(0)
-
   const {
     status,
-    resolvedData,
-    latestData,
+    data: postPages,
     error,
     isFetching,
-  } = usePaginatedPosts({
-    page,
-  })
+    isFetchingMore,
+    canFetchMore,
+    fetchMore,
+  } = useInfinitePosts()
 
   const [createPost, { status: createPostStatus }] = useCreatePost()
 
@@ -58,32 +56,32 @@ function Posts({ setActivePostId }) {
             <span>Error: {error.message}</span>
           ) : (
             <>
-              <h3>Posts {isFetching ? <small>Updating...</small> : null}</h3>
+              <h3>
+                Posts{' '}
+                {isFetching && !isFetchingMore ? (
+                  <small>Updating...</small>
+                ) : null}
+              </h3>
               <div>
-                {resolvedData.items.map((post) => (
-                  <div key={post.id}>
-                    <a href="#" onClick={() => setActivePostId(post.id)}>
-                      {post.title}
-                    </a>
-                  </div>
+                {postPages.map((page, index) => (
+                  <React.Fragment key={index}>
+                    {page.items.map((post) => (
+                      <div key={post.id}>
+                        <a href="#" onClick={() => setActivePostId(post.id)}>
+                          {post.title}
+                        </a>
+                      </div>
+                    ))}
+                  </React.Fragment>
                 ))}
               </div>
               <br />
-              <span>Page: {page + 1}</span>{' '}
-              <button
-                onClick={() => setPage((old) => Math.max(old - 1, 0))}
-                disabled={page === 0}
-              >
-                Previous
-              </button>{' '}
-              <button
-                onClick={() =>
-                  latestData?.nextPageOffset &&
-                  setPage(latestData?.nextPageOffset)
-                }
-                disabled={!latestData?.nextPageOffset}
-              >
-                Next
+              <button onClick={() => fetchMore()} disabled={!canFetchMore}>
+                {isFetchingMore
+                  ? 'Loading more...'
+                  : canFetchMore
+                  ? 'Load More'
+                  : 'Nothing more to load'}
               </button>
             </>
           )}
