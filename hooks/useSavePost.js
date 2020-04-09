@@ -1,19 +1,15 @@
-import React from 'react'
 import axios from 'axios'
+import { useMutation, queryCache } from 'react-query'
 
 export default function useSavePost() {
-  const [status, setStatus] = React.useState('idle')
-
-  const savePost = React.useCallback(async (values) => {
-    try {
-      setStatus('loading')
-      await axios.patch(`/api/posts/${values.id}`, values)
-      setStatus('success')
-    } catch (err) {
-      setStatus('error')
-      throw err
+  return useMutation(
+    (values) =>
+      axios.patch(`/api/posts/${values.id}`, values).then((res) => res.data),
+    {
+      onSuccess: async (values) => {
+        queryCache.refetchQueries('posts')
+        await queryCache.refetchQueries(['post', values.id])
+      },
     }
-  })
-
-  return [savePost, status]
+  )
 }

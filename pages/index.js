@@ -33,17 +33,8 @@ function App() {
 }
 
 function Posts({ setActivePostId }) {
-  const { status, data: posts, error, refetch, isFetching } = usePosts()
-  const [createPost, createPostStatus] = useCreatePost()
-
-  const onSubmit = async (values) => {
-    try {
-      await createPost(values)
-      refetch()
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  const { status, data: posts, error, isFetching } = usePosts()
+  const [createPost, { status: createPostStatus }] = useCreatePost()
 
   return (
     <section>
@@ -74,7 +65,7 @@ function Posts({ setActivePostId }) {
         <h3>Create New Post</h3>
         <div>
           <PostForm
-            onSubmit={onSubmit}
+            onSubmit={createPost}
             submitText={
               createPostStatus === 'loading'
                 ? 'Saving...'
@@ -92,20 +83,9 @@ function Posts({ setActivePostId }) {
 }
 
 function Post({ activePostId, setActivePostId }) {
-  const { status, data: post, error, refetch, isFetching } = usePost(
-    activePostId
-  )
-  const [savePost, savePostStatus] = useSavePost()
-  const [deletePost, deletePostStatus] = useDeletePost()
-
-  const onSubmit = async (values) => {
-    try {
-      await savePost(values)
-      refetch()
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  const { status, data: post, error, isFetching } = usePost(activePostId)
+  const [savePost, { status: savePostStatus }] = useSavePost()
+  const [deletePost, { status: deletePostStatus }] = useDeletePost()
 
   const onDelete = async () => {
     if (post.id) {
@@ -138,7 +118,7 @@ function Post({ activePostId, setActivePostId }) {
 
           <PostForm
             initialValues={post}
-            onSubmit={onSubmit}
+            onSubmit={savePost}
             submitText={
               savePostStatus === 'loading'
                 ? 'Saving...'
