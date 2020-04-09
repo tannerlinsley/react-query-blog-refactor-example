@@ -4,6 +4,7 @@ import { Wrapper, Sidebar, Main } from '../components/styled'
 import PostForm from '../components/PostForm'
 
 import usePosts from '../hooks/usePosts'
+import usePaginatedPosts from '../hooks/usePaginatedPosts'
 import usePost from '../hooks/usePost'
 import useCreatePost from '../hooks/useCreatePost'
 import useSavePost from '../hooks/useSavePost'
@@ -33,7 +34,18 @@ function App() {
 }
 
 function Posts({ setActivePostId }) {
-  const { status, data: posts, error, isFetching } = usePosts()
+  const [page, setPage] = React.useState(0)
+
+  const {
+    status,
+    resolvedData,
+    latestData,
+    error,
+    isFetching,
+  } = usePaginatedPosts({
+    page,
+  })
+
   const [createPost, { status: createPostStatus }] = useCreatePost()
 
   return (
@@ -48,7 +60,7 @@ function Posts({ setActivePostId }) {
             <>
               <h3>Posts {isFetching ? <small>Updating...</small> : null}</h3>
               <div>
-                {posts.map((post) => (
+                {resolvedData.items.map((post) => (
                   <div key={post.id}>
                     <a href="#" onClick={() => setActivePostId(post.id)}>
                       {post.title}
@@ -56,6 +68,23 @@ function Posts({ setActivePostId }) {
                   </div>
                 ))}
               </div>
+              <br />
+              <span>Page: {page + 1}</span>{' '}
+              <button
+                onClick={() => setPage((old) => Math.max(old - 1, 0))}
+                disabled={page === 0}
+              >
+                Previous
+              </button>{' '}
+              <button
+                onClick={() =>
+                  latestData?.nextPageOffset &&
+                  setPage(latestData?.nextPageOffset)
+                }
+                disabled={!latestData?.nextPageOffset}
+              >
+                Next
+              </button>
             </>
           )}
         </div>
